@@ -8,8 +8,8 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-@PageTitle("Eintragungen")
-@Route(value = "my-view", layout = MainLayout.class)
+@PageTitle("Gewichtseintragung")
+@Route(value = "gewichtseintragung", layout = MainLayout.class)
 @Uses(Icon.class)
 public class EintragungenView extends Composite<VerticalLayout> {
 

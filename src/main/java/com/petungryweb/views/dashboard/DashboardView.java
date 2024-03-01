@@ -30,6 +30,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
 
+import java.util.Calendar;
+
 @PageTitle("Dashboard")
 @Route(value = "dashboard", layout = MainLayout.class)
 @RouteAlias(value = "", layout = MainLayout.class)
@@ -82,14 +84,17 @@ public class DashboardView extends Main {
 
     private Component createViewFeedingsMonths() {
         // Header
+        String[] monatsNamen = {"Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"};
         Select year = new Select();
-        Select moth = new Select();
-        moth.setItems("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember");
+        Select month = new Select();
+        month.setItems("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember");
         year.setItems("2024");
         year.setValue("2024");
+        month.setValue(monatsNamen[Calendar.getInstance().get(Calendar.MONTH)-1]);
         year.setWidth("100px");
 
         HorizontalLayout header = createHeader("Fütterungen", "Monat");
+        header.add(month);
         header.add(year);
 
         // Chart
@@ -98,20 +103,21 @@ public class DashboardView extends Main {
         conf.getChart().setStyledMode(true);
 
         XAxis xAxis = new XAxis();
-        xAxis.setCategories("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
+        xAxis.setCategories("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+                "20", "21", "22", "23", "24", "25", "26", "30", "31");
         conf.addxAxis(xAxis);
 
-        conf.getyAxis().setTitle("Values");
+        conf.getyAxis().setTitle("Menge");
 
         PlotOptionsAreaspline plotOptions = new PlotOptionsAreaspline();
         plotOptions.setPointPlacement(PointPlacement.ON);
         plotOptions.setMarker(new Marker(false));
         conf.addPlotOptions(plotOptions);
 
-        conf.addSeries(new ListSeries("Mathis", 189, 191, 291, 396, 501, 403, 609, 712, 729, 942, 1044, 1247));
-        conf.addSeries(new ListSeries("Lea", 138, 246, 248, 348, 352, 353, 463, 573, 778, 779, 885, 887));
-        conf.addSeries(new ListSeries("Birgit", 65, 65, 166, 171, 293, 302, 308, 317, 427, 429, 535, 636));
-        conf.addSeries(new ListSeries("Wilfried", 0, 11, 17, 123, 130, 142, 248, 349, 452, 454, 458, 462));
+        conf.addSeries(new ListSeries("Mathis", 0));
+        conf.addSeries(new ListSeries("Lea", 0));
+        conf.addSeries(new ListSeries("Birgit", 0));
+        conf.addSeries(new ListSeries("Wilfried", 0));
 
         // Add it all together
         VerticalLayout viewEvents = new VerticalLayout(header, chart);
