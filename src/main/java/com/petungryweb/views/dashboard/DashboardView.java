@@ -39,10 +39,10 @@ public class DashboardView extends Main {
         addClassName("dashboard-view");
 
         Board board = new Board();
-        board.addRow(createHighlight("Current users", "745", 33.7), createHighlight("View events", "54.6k", -112.45),
-                createHighlight("Conversion rate", "18%", 3.9), createHighlight("Custom metric", "-123.45", 0.0));
-        board.addRow(createViewEvents());
-        board.addRow(createServiceHealth(), createResponseTimes());
+        board.addRow(createHighlight("Heutige Futtermenge", "500g", 1.0), createHighlight("Wöchentlicher Tagesdurchschnitt", "1000g", -5.0),
+                createHighlight("Offenes Futter", "200g", 0.0), createHighlight("Futterbeutel", "66%", 0.0));
+        board.addRow(createViewFeedingsMonths());
+        board.addRow(createTodayFeedings(), createTodaysFeedingPlan());
         add(board);
     }
 
@@ -80,14 +80,16 @@ public class DashboardView extends Main {
         return layout;
     }
 
-    private Component createViewEvents() {
+    private Component createViewFeedingsMonths() {
         // Header
         Select year = new Select();
-        year.setItems("2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021");
-        year.setValue("2021");
+        Select moth = new Select();
+        moth.setItems("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember");
+        year.setItems("2024");
+        year.setValue("2024");
         year.setWidth("100px");
 
-        HorizontalLayout header = createHeader("View events", "City/month");
+        HorizontalLayout header = createHeader("Fütterungen", "Monat");
         header.add(year);
 
         // Chart
@@ -106,10 +108,10 @@ public class DashboardView extends Main {
         plotOptions.setMarker(new Marker(false));
         conf.addPlotOptions(plotOptions);
 
-        conf.addSeries(new ListSeries("Berlin", 189, 191, 291, 396, 501, 403, 609, 712, 729, 942, 1044, 1247));
-        conf.addSeries(new ListSeries("London", 138, 246, 248, 348, 352, 353, 463, 573, 778, 779, 885, 887));
-        conf.addSeries(new ListSeries("New York", 65, 65, 166, 171, 293, 302, 308, 317, 427, 429, 535, 636));
-        conf.addSeries(new ListSeries("Tokyo", 0, 11, 17, 123, 130, 142, 248, 349, 452, 454, 458, 462));
+        conf.addSeries(new ListSeries("Mathis", 189, 191, 291, 396, 501, 403, 609, 712, 729, 942, 1044, 1247));
+        conf.addSeries(new ListSeries("Lea", 138, 246, 248, 348, 352, 353, 463, 573, 778, 779, 885, 887));
+        conf.addSeries(new ListSeries("Birgit", 65, 65, 166, 171, 293, 302, 308, 317, 427, 429, 535, 636));
+        conf.addSeries(new ListSeries("Wilfried", 0, 11, 17, 123, 130, 142, 248, 349, 452, 454, 458, 462));
 
         // Add it all together
         VerticalLayout viewEvents = new VerticalLayout(header, chart);
@@ -120,9 +122,9 @@ public class DashboardView extends Main {
         return viewEvents;
     }
 
-    private Component createServiceHealth() {
+    private Component createTodayFeedings() {
         // Header
-        HorizontalLayout header = createHeader("Service health", "Input / output");
+        HorizontalLayout header = createHeader("Heutige Fütterungen", "Menge");
 
         // Grid
         Grid<ServiceHealth> grid = new Grid();
@@ -137,14 +139,10 @@ public class DashboardView extends Main {
             status.getElement().getThemeList().add(getStatusTheme(serviceHealth));
             return status;
         })).setHeader("").setFlexGrow(0).setAutoWidth(true);
-        grid.addColumn(ServiceHealth::getCity).setHeader("City").setFlexGrow(1);
-        grid.addColumn(ServiceHealth::getInput).setHeader("Input").setAutoWidth(true).setTextAlign(ColumnTextAlign.END);
-        grid.addColumn(ServiceHealth::getOutput).setHeader("Output").setAutoWidth(true)
-                .setTextAlign(ColumnTextAlign.END);
+        grid.addColumn(ServiceHealth::getCity).setHeader("Fütterer").setFlexGrow(1);
+        grid.addColumn(ServiceHealth::getInput).setHeader("Menge").setAutoWidth(true).setTextAlign(ColumnTextAlign.END);
 
-        grid.setItems(new ServiceHealth(Status.EXCELLENT, "Münster", 324, 1540),
-                new ServiceHealth(Status.OK, "Cluj-Napoca", 311, 1320),
-                new ServiceHealth(Status.FAILING, "Ciudad Victoria", 300, 1219));
+        grid.setItems(new ServiceHealth(Status.EXCELLENT, "Mathis", 324, 1540));
 
         // Add it all together
         VerticalLayout serviceHealth = new VerticalLayout(header, grid);
@@ -155,8 +153,8 @@ public class DashboardView extends Main {
         return serviceHealth;
     }
 
-    private Component createResponseTimes() {
-        HorizontalLayout header = createHeader("Response times", "Average across all systems");
+    private Component createTodaysFeedingPlan() {
+        HorizontalLayout header = createHeader("Heutige Futtermenge", "Bisherige Futtermenge / Zukünftige Futtermenge");
 
         // Chart
         Chart chart = new Chart(ChartType.PIE);
@@ -165,12 +163,8 @@ public class DashboardView extends Main {
         chart.setThemeName("gradient");
 
         DataSeries series = new DataSeries();
-        series.add(new DataSeriesItem("System 1", 12.5));
-        series.add(new DataSeriesItem("System 2", 12.5));
-        series.add(new DataSeriesItem("System 3", 12.5));
-        series.add(new DataSeriesItem("System 4", 12.5));
-        series.add(new DataSeriesItem("System 5", 12.5));
-        series.add(new DataSeriesItem("System 6", 12.5));
+        series.add(new DataSeriesItem("Bisher", 70));
+        series.add(new DataSeriesItem("Zukünftig", 30));
         conf.addSeries(series);
 
         // Add it all together
