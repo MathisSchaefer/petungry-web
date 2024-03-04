@@ -53,9 +53,9 @@ public class MainLayout extends AppLayout {
         SideNav nav = new SideNav();
 
         nav.addItem(new SideNavItem("Dashboard", DashboardView.class, LineAwesomeIcon.CHART_AREA_SOLID.create()));
-        nav.addItem(
-                new SideNavItem("Eintragungen", EintragungenView.class, LineAwesomeIcon.PENCIL_RULER_SOLID.create()));
         nav.addItem(new SideNavItem("Historie", HistorieView.class, LineAwesomeIcon.LIST_SOLID.create()));
+        nav.addItem(
+                new SideNavItem("Gewichts-Eintragungen", EintragungenView.class, LineAwesomeIcon.PENCIL_RULER_SOLID.create()));
 
         return nav;
     }

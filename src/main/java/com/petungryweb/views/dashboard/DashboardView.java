@@ -43,8 +43,8 @@ public class DashboardView extends Main {
         Board board = new Board();
         board.addRow(createHighlight("Heutige Futtermenge", "500g", 1.0), createHighlight("Wöchentlicher Tagesdurchschnitt", "1000g", -5.0),
                 createHighlight("Offenes Futter", "200g", 0.0), createHighlight("Futterbeutel", "66%", 0.0));
-        board.addRow(createViewFeedingsMonths());
         board.addRow(createTodayFeedings(), createTodaysFeedingPlan());
+        board.addRow(createViewFeedingsMonths());
         add(board);
     }
 
