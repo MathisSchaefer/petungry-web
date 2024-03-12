@@ -2,13 +2,15 @@ package com.petungryweb.views;
 
 import com.petungryweb.views.dashboard.DashboardView;
 import com.petungryweb.views.eintragungen.EintragungenView;
-import com.petungryweb.views.historie.HistorieView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Footer;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Header;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
@@ -23,6 +25,16 @@ public class MainLayout extends AppLayout {
 
     private H2 viewTitle;
 
+    public static String getFuetterer() {
+        return Fuetterer;
+    }
+
+    public void setFuetterer(String fuetterer) {
+        Fuetterer = fuetterer;
+    }
+
+    private static String Fuetterer;
+
     public MainLayout() {
         setPrimarySection(Section.DRAWER);
         addDrawerContent();
@@ -36,7 +48,38 @@ public class MainLayout extends AppLayout {
         viewTitle = new H2();
         viewTitle.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
 
-        addToNavbar(true, toggle, viewTitle);
+        HorizontalLayout avatarLayout = new HorizontalLayout();
+        avatarLayout.setPadding(true);
+        avatarLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        Button btnMathis = new Button("M");
+        Button btnBirgit = new Button("B");
+        Button btnWilfried = new Button("W");
+        Button btnLea = new Button("L");
+        btnBirgit.focus();
+        btnMathis.addClickListener(clickEvent -> {
+            btnMathis.focus();
+            Fuetterer = "Mathis";
+        });
+        btnBirgit.addClickListener(clickEvent -> {
+            btnBirgit.focus();
+            Fuetterer = "Birgit";
+        });
+        btnWilfried.addClickListener(clickEvent -> {
+            btnWilfried.focus();
+            Fuetterer = "Wilfried";
+        });
+        btnLea.addClickListener(clickEvent -> {
+            btnLea.focus();
+            Fuetterer = "Lea";
+        });
+        avatarLayout.add(btnMathis);
+        avatarLayout.add(btnBirgit);
+        avatarLayout.add(btnWilfried);
+        avatarLayout.add(btnLea);
+        avatarLayout.setMargin(true);
+        avatarLayout.setSpacing(true);
+
+        addToNavbar(true, toggle, viewTitle, avatarLayout);
     }
 
     private void addDrawerContent() {
@@ -53,9 +96,8 @@ public class MainLayout extends AppLayout {
         SideNav nav = new SideNav();
 
         nav.addItem(new SideNavItem("Dashboard", DashboardView.class, LineAwesomeIcon.CHART_AREA_SOLID.create()));
-        nav.addItem(new SideNavItem("Historie", HistorieView.class, LineAwesomeIcon.LIST_SOLID.create()));
         nav.addItem(
-                new SideNavItem("Gewichts-Eintragungen", EintragungenView.class, LineAwesomeIcon.PENCIL_RULER_SOLID.create()));
+                new SideNavItem("Gewichtseintragungen", EintragungenView.class, LineAwesomeIcon.PENCIL_RULER_SOLID.create()));
 
         return nav;
     }

@@ -23,7 +23,10 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility.*;
 
+import java.sql.*;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
 
 @PageTitle("Gewichtseintragung")
 @Route(value = "gewichtseintragung", layout = MainLayout.class)
@@ -37,8 +40,8 @@ public class EintragungenView extends Main{
         board.addRow(createHighlight("Aktuelles Gewicht", "5kg", 1.0), createHighlight("Monatliches Maximalgewicht", "6kg", -5.0),
                 createHighlight("Monatliches Minimalgewicht", "4,5kg", 0.0));
         board.addRow(createGewichtseintragung());
+        board.addRow(createChart());
         add(board);
-        Chart chart = new Chart(ChartType.COLUMN);
     }
 
     private Component createGewichtseintragung() {
@@ -52,9 +55,31 @@ public class EintragungenView extends Main{
         Button submitButton = new Button("Eintragen");
         submitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY,
                 ButtonVariant.LUMO_CONTRAST);
-
+        submitButton.addClickListener(clickEvent -> {
+            writeWheigthInDB(kgField.getValue());
+        });
         VerticalLayout layout = new VerticalLayout(kgField, submitButton);
+        System.out.println(System.getenv("DB_Password"));
         return layout;
+    }
+
+    private void writeWheigthInDB(Double gewicht){
+        String connectionUrl = "jdbc:mysql://127.0.0.1:3306;databaseName=petungry;user=petungry_user;password=Abde1245;";
+        Date today = new Date();
+        try (Connection connection = DriverManager.getConnection(connectionUrl);
+            Statement statement = connection.createStatement()) {
+            String insertSql = "INSERT INTO gewicht (pet_id, gewicht, date) VALUES (1, ?, current_date)";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(insertSql)){
+                preparedStatement.setString(1, String.valueOf(gewicht));
+                preparedStatement.executeUpdate();
+            }
+            System.out.println("Datensatz erfolgreich eingefügt!");
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     private Component createHighlight(String title, String value, Double percentage) {
@@ -157,4 +182,32 @@ public class EintragungenView extends Main{
         return header;
     }
 
+    private Component createChart(){
+        Chart chart = new Chart(ChartType.SPLINE);
+        Configuration conf = chart.getConfiguration();
+        conf.getChart().setStyledMode(true);
+
+        XAxis xAxis = new XAxis();
+        xAxis.setCategories("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+                "20", "21", "22", "23", "24", "25", "26", "30", "31");
+        conf.addxAxis(xAxis);
+
+        conf.getyAxis().setTitle("Gewicht in KG");
+
+        PlotOptionsAreaspline plotOptions = new PlotOptionsAreaspline();
+        plotOptions.setPointPlacement(PointPlacement.ON);
+        plotOptions.setMarker(new Marker(false));
+        conf.addPlotOptions(plotOptions);
+        Series chartData = new ListSeries();
+
+        conf.addSeries(new ListSeries("Pepe", 5,4.5,4,5,5.5,6,5.5,6,6.5,5,4.5,4,5,5,5.5,6,7,5,6,5,4.5,4,5,5,5,4,4,4.5,5,6,5.5,5));
+
+        // Add it all together
+        VerticalLayout viewEvents = new VerticalLayout(chart);
+        viewEvents.addClassName(Padding.LARGE);
+        viewEvents.setPadding(false);
+        viewEvents.setSpacing(false);
+        viewEvents.getElement().getThemeList().add("spacing-l");
+        return viewEvents;
+    }
 }

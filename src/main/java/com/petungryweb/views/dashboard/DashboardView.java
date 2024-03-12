@@ -2,9 +2,10 @@ package com.petungryweb.views.dashboard;
 
 
 import com.petungryweb.views.MainLayout;
-import com.petungryweb.views.dashboard.ServiceHealth.Status;
+import com.petungryweb.views.dashboard.Fedding.Status;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.board.Board;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.charts.Chart;
 import com.vaadin.flow.component.charts.model.*;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
@@ -13,8 +14,6 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Main;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -23,13 +22,13 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
-import com.vaadin.flow.theme.lumo.LumoUtility.BoxSizing;
 import com.vaadin.flow.theme.lumo.LumoUtility.FontSize;
 import com.vaadin.flow.theme.lumo.LumoUtility.FontWeight;
 import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 
 @PageTitle("Dashboard")
@@ -37,45 +36,125 @@ import java.util.Calendar;
 @RouteAlias(value = "", layout = MainLayout.class)
 public class DashboardView extends Main {
 
+    private Grid<Fedding> grid = new Grid();
+    private double futterMenge = 40;
+    private double gesamtFutter = 500;
+
+    private double futterBeutel = 66;
+    private double futterBeutelMengeGesamt = 10000;
+    private double futterBeutelMengeAktuell = 4000;
+
+    private double futterAufWaage = 20;
+
+
+    private Chart todayFeedingPieChart = new Chart(ChartType.PIE);
+
+    private Configuration conf = todayFeedingPieChart.getConfiguration();
+
+
+    private Board board = new Board();
+
+    private Span spanPastFeed;
+    private Span spanOpenFeed;
+    private Span spanBag;
+
+    private VerticalLayout layoutPastFeed;
+    private VerticalLayout layoutOpenFeed;
+    private VerticalLayout layoutBag;
+
+    private int bisherFutter;
+    private DataSeries seriesFeedings;
+    private Configuration confChartMonths;
+
+
+    private DataSeriesItem initialPastFeed = new DataSeriesItem("Bisher", bisherFutter);
+    private DataSeriesItem initialFutureFeed = new DataSeriesItem("Zukünftig", 100-bisherFutter);
+
+    ArrayList<Fedding> a = new ArrayList<Fedding>();
+
     public DashboardView() {
         addClassName("dashboard-view");
-
-        Board board = new Board();
-        board.addRow(createHighlight("Heutige Futtermenge", "500g", 1.0), createHighlight("Wöchentlicher Tagesdurchschnitt", "1000g", -5.0),
-                createHighlight("Offenes Futter", "200g", 0.0), createHighlight("Futterbeutel", "66%", 0.0));
+        a.add(new Fedding(Status.EXCELLENT, "Mathis", futterMenge));
+        board.addRow(createFeed(), createHighlightPastFeed("Heutige Futtermenge", futterMenge + "g"),
+                createHighlightOpenFeed("Offenes Futter",  (gesamtFutter - futterMenge) + "g"), createHighlightBag("Futterbeutel", String.valueOf(Math.round(futterBeutelMengeAktuell/futterBeutelMengeGesamt*100)) + "%"));
         board.addRow(createTodayFeedings(), createTodaysFeedingPlan());
         board.addRow(createViewFeedingsMonths());
         add(board);
     }
 
-    private Component createHighlight(String title, String value, Double percentage) {
-        VaadinIcon icon = VaadinIcon.ARROW_UP;
-        String prefix = "";
-        String theme = "badge";
-
-        if (percentage == 0) {
-            prefix = "±";
-        } else if (percentage > 0) {
-            prefix = "+";
-            theme += " success";
-        } else if (percentage < 0) {
-            icon = VaadinIcon.ARROW_DOWN;
-            theme += " error";
-        }
+    private Component createHighlightPastFeed(String title, String value) {
 
         H2 h2 = new H2(title);
         h2.addClassNames(FontWeight.NORMAL, Margin.NONE, TextColor.SECONDARY, FontSize.XSMALL);
 
-        Span span = new Span(value);
+        spanPastFeed = new Span(value);
+        spanPastFeed.addClassNames(FontWeight.SEMIBOLD, FontSize.XXXLARGE);
+
+
+        layoutPastFeed = new VerticalLayout(h2, spanPastFeed);
+        layoutPastFeed.addClassName(Padding.LARGE);
+        layoutPastFeed.setPadding(false);
+        layoutPastFeed.setSpacing(false);
+        return layoutPastFeed;
+    }    private Component createHighlightOpenFeed(String title, String value) {
+
+        H2 h2 = new H2(title);
+        h2.addClassNames(FontWeight.NORMAL, Margin.NONE, TextColor.SECONDARY, FontSize.XSMALL);
+
+        spanOpenFeed = new Span(value);
+        spanOpenFeed.addClassNames(FontWeight.SEMIBOLD, FontSize.XXXLARGE);
+
+
+        layoutOpenFeed = new VerticalLayout(h2, spanOpenFeed);
+        layoutOpenFeed.addClassName(Padding.LARGE);
+        layoutOpenFeed.setPadding(false);
+        layoutOpenFeed.setSpacing(false);
+        return layoutOpenFeed;
+    }
+    private Component createHighlightBag(String title, String value) {
+
+        H2 h2 = new H2(title);
+        h2.addClassNames(FontWeight.NORMAL, Margin.NONE, TextColor.SECONDARY, FontSize.XSMALL);
+
+        spanBag = new Span(value);
+        spanBag.addClassNames(FontWeight.SEMIBOLD, FontSize.XXXLARGE);
+
+
+        layoutBag = new VerticalLayout(h2, spanBag);
+        layoutBag.addClassName(Padding.LARGE);
+        layoutBag.setPadding(false);
+        layoutBag.setSpacing(false);
+        return layoutBag;
+    }
+
+    private Component createFeed() {
+
+        H2 h2 = new H2("Futtermenge auf der Waage");
+        h2.addClassNames(FontWeight.NORMAL, Margin.NONE, TextColor.SECONDARY, FontSize.XSMALL);
+        Span span = new Span(futterAufWaage + "g");
         span.addClassNames(FontWeight.SEMIBOLD, FontSize.XXXLARGE);
 
-        Icon i = icon.create();
-        i.addClassNames(BoxSizing.BORDER, Padding.XSMALL);
+        Button feed = new Button("Füttern");
+        feed.addClickListener(clickListener -> {
+            futterBeutelMengeAktuell -= futterAufWaage;
+            futterMenge += futterAufWaage;
+            DataSeries series = new DataSeries();
+            series.add(new DataSeriesItem("Bisher", futterMenge));
+            series.add(new DataSeriesItem("Zukünftig", gesamtFutter-futterMenge));
+            seriesFeedings.clear();
+            seriesFeedings.add(new DataSeriesItem("Bisher", bisherFutter));
+            seriesFeedings.add(new DataSeriesItem("Zukünftig", gesamtFutter-bisherFutter));
+            conf.setSeries(series);
+            a.add(new Fedding(Status.EXCELLENT, MainLayout.getFuetterer(), futterAufWaage));
+            grid.setItems(a);
+            spanPastFeed.setText((int) futterMenge + "g");
+            spanOpenFeed.setText((int) (gesamtFutter-futterMenge) + "g");
+            spanBag.setText(Math.round(futterBeutelMengeAktuell/futterBeutelMengeGesamt*100)+"%");
 
-        Span badge = new Span(i, new Span(prefix + percentage.toString()));
-        badge.getElement().getThemeList().add(theme);
+            confChartMonths.addSeries(new ListSeries(MainLayout.getFuetterer(), futterAufWaage));
+        });
 
-        VerticalLayout layout = new VerticalLayout(h2, span, badge);
+        VerticalLayout layout = new VerticalLayout(h2, span, feed);
         layout.addClassName(Padding.LARGE);
         layout.setPadding(false);
         layout.setSpacing(false);
@@ -99,25 +178,25 @@ public class DashboardView extends Main {
 
         // Chart
         Chart chart = new Chart(ChartType.AREASPLINE);
-        Configuration conf = chart.getConfiguration();
-        conf.getChart().setStyledMode(true);
+        confChartMonths = chart.getConfiguration();
+        confChartMonths.getChart().setStyledMode(true);
 
         XAxis xAxis = new XAxis();
         xAxis.setCategories("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
                 "20", "21", "22", "23", "24", "25", "26", "30", "31");
-        conf.addxAxis(xAxis);
+        confChartMonths.addxAxis(xAxis);
 
-        conf.getyAxis().setTitle("Menge");
+        confChartMonths.getyAxis().setTitle("Menge");
 
         PlotOptionsAreaspline plotOptions = new PlotOptionsAreaspline();
         plotOptions.setPointPlacement(PointPlacement.ON);
         plotOptions.setMarker(new Marker(false));
-        conf.addPlotOptions(plotOptions);
+        confChartMonths.addPlotOptions(plotOptions);
 
-        conf.addSeries(new ListSeries("Mathis", 0));
-        conf.addSeries(new ListSeries("Lea", 0));
-        conf.addSeries(new ListSeries("Birgit", 0));
-        conf.addSeries(new ListSeries("Wilfried", 0));
+        confChartMonths.addSeries(new ListSeries("Mathis", 0));
+        confChartMonths.addSeries(new ListSeries("Lea", 0));
+        confChartMonths.addSeries(new ListSeries("Birgit", 0));
+        confChartMonths.addSeries(new ListSeries("Wilfried", 0));
 
         // Add it all together
         VerticalLayout viewEvents = new VerticalLayout(header, chart);
@@ -127,54 +206,51 @@ public class DashboardView extends Main {
         viewEvents.getElement().getThemeList().add("spacing-l");
         return viewEvents;
     }
-
-    private Component createTodayFeedings() {
+    public Component createTodayFeedings() {
         // Header
         HorizontalLayout header = createHeader("Heutige Fütterungen", "Menge");
 
         // Grid
-        Grid<ServiceHealth> grid = new Grid();
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.setAllRowsVisible(true);
 
-        grid.addColumn(new ComponentRenderer<>(serviceHealth -> {
+        grid.addColumn(new ComponentRenderer<>(fedding -> {
             Span status = new Span();
-            String statusText = getStatusDisplayName(serviceHealth);
+            String statusText = getStatusDisplayName(fedding);
             status.getElement().setAttribute("aria-label", "Status: " + statusText);
             status.getElement().setAttribute("title", "Status: " + statusText);
-            status.getElement().getThemeList().add(getStatusTheme(serviceHealth));
+            status.getElement().getThemeList().add(getStatusTheme(fedding));
             return status;
         })).setHeader("").setFlexGrow(0).setAutoWidth(true);
-        grid.addColumn(ServiceHealth::getCity).setHeader("Fütterer").setFlexGrow(1);
-        grid.addColumn(ServiceHealth::getInput).setHeader("Menge").setAutoWidth(true).setTextAlign(ColumnTextAlign.END);
+        grid.addColumn(Fedding::getFuetterer).setHeader("Fütterer").setFlexGrow(1);
+        grid.addColumn(Fedding::getMenge).setHeader("Menge").setAutoWidth(true).setTextAlign(ColumnTextAlign.END);
 
-        grid.setItems(new ServiceHealth(Status.EXCELLENT, "Mathis", 324, 1540));
+        grid.setItems(new Fedding(Status.EXCELLENT, "Mathis", 40));
 
         // Add it all together
-        VerticalLayout serviceHealth = new VerticalLayout(header, grid);
-        serviceHealth.addClassName(Padding.LARGE);
-        serviceHealth.setPadding(false);
-        serviceHealth.setSpacing(false);
-        serviceHealth.getElement().getThemeList().add("spacing-l");
-        return serviceHealth;
+        VerticalLayout FeedingLayout = new VerticalLayout(header, grid);
+        FeedingLayout.addClassName(Padding.LARGE);
+        FeedingLayout.setPadding(false);
+        FeedingLayout.setSpacing(false);
+        FeedingLayout.getElement().getThemeList().add("spacing-l");
+        return FeedingLayout;
     }
 
     private Component createTodaysFeedingPlan() {
         HorizontalLayout header = createHeader("Heutige Futtermenge", "Bisherige Futtermenge / Zukünftige Futtermenge");
 
         // Chart
-        Chart chart = new Chart(ChartType.PIE);
-        Configuration conf = chart.getConfiguration();
         conf.getChart().setStyledMode(true);
-        chart.setThemeName("gradient");
+        todayFeedingPieChart.setThemeName("gradient");
 
-        DataSeries series = new DataSeries();
-        series.add(new DataSeriesItem("Bisher", 70));
-        series.add(new DataSeriesItem("Zukünftig", 30));
-        conf.addSeries(series);
+        seriesFeedings = new DataSeries();
+        bisherFutter = (int) (futterMenge/gesamtFutter*100);
+        seriesFeedings.add(new DataSeriesItem("Bisher", bisherFutter));
+        seriesFeedings.add(new DataSeriesItem("Zukünftig", 100-bisherFutter));
+        conf.addSeries(seriesFeedings);
 
         // Add it all together
-        VerticalLayout serviceHealth = new VerticalLayout(header, chart);
+        VerticalLayout serviceHealth = new VerticalLayout(header, todayFeedingPieChart);
         serviceHealth.addClassName(Padding.LARGE);
         serviceHealth.setPadding(false);
         serviceHealth.setSpacing(false);
@@ -200,8 +276,8 @@ public class DashboardView extends Main {
         return header;
     }
 
-    private String getStatusDisplayName(ServiceHealth serviceHealth) {
-        Status status = serviceHealth.getStatus();
+    private String getStatusDisplayName(Fedding fedding) {
+        Status status = fedding.getStatus();
         if (status == Status.OK) {
             return "Ok";
         } else if (status == Status.FAILING) {
@@ -213,8 +289,8 @@ public class DashboardView extends Main {
         }
     }
 
-    private String getStatusTheme(ServiceHealth serviceHealth) {
-        Status status = serviceHealth.getStatus();
+    private String getStatusTheme(Fedding fedding) {
+        Status status = fedding.getStatus();
         String theme = "badge primary small";
         if (status == Status.EXCELLENT) {
             theme += " success";
@@ -223,5 +299,4 @@ public class DashboardView extends Main {
         }
         return theme;
     }
-
 }
